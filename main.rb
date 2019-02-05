@@ -117,49 +117,114 @@ print hand.points_amount
 class Player
   attr_accessor :hand
 
-  def initialize(interaction_strategy)
-    @interaction_strategy = interaction_strategy
+  def initialize(balance, action_strategy)
+    @balance = balance
+    @action_strategy = action_strategy
   end
 
   def name
-    unless @name
-      @name = @interaction_strategy.prompt_name
-    end
-    @name
+    return "ALEX FOR NOW"
+    @name ||= @action_strategy.name
+  end
+
+  def choose_action(actions)
+    @action_strategy.choose_action(actions, self)
+  end
+
+  def player_hand
+    "Player's #{name} hand: " << @action_strategy.player_hand(self)
   end
 
   def add_card(cards)
     @hand.add_card(cards)
   end
+
+  def withdraw(amount)
+    @balance -= amount
+  end
+
+  def deposit(amount)
+    @balance += amount
+  end
 end
 
-class UserInputInteractionStrategy
-  def prompt_name
+class PromptActionStrategy
+  def name
     puts "Enter your name: "
     gets.chomp
   end
-end
 
-class BotInteractionStrategy
-  def prompt_name
-    "Black Joe"
+  def choose_action(actions, player)
+    puts "Select action: "
+    prompt_select_action(actions)
   end
-end
 
-class BlackJackGame
-  def start
-    init_players
-    greet_player(@player)
-    init_players_hands
-    print_player_hand
-    play
+  def player_hand(player)
+    player.hand.to_s
   end
 
   protected
 
-  def init_players
-    @player = Player.new(UserInputInteractionStrategy.new)
-    @dealer = Player.new(BotInteractionStrategy.new)
+  def prompt_select_action(actions)
+    acts = []
+    index = 0
+    actions.each do |code, action|
+      puts "#{index}: #{action}"
+      acts[index] = code
+      index += 1
+    end
+    action_index = gets.to_i
+    acts[action_index]
+  end
+end
+
+class BotActionStrategy
+  THRESHOLD_POINTS_AMOUNT = 17
+
+  def name
+    "Black Joe"
+  end
+
+  def choose_action(actions, player)
+    puts player.hand.to_s
+    if player.hand.points_amount >= THRESHOLD_POINTS_AMOUNT
+      :skip
+    else
+      :add_card
+    end
+  end
+
+  def player_hand
+    "* * points amount: *"
+  end
+end
+
+class RoundFinish < RuntimeError; end
+
+class BlackJackGame
+  INITIAL_BALANCE = 100
+  STATE_HANDS_INIT = "hi"
+  STATE_WITHDRAW_BETS = 'wb'
+  STATE_ROUND_START = "rs"
+  STATE_ROUND_FINISH = "rf"
+  STATE_PLAYER_MOVE = "pm"
+  STATE_DEALER_MOVE = "dm"
+
+  attr_reader :player, :dealer, :deck
+  attr_writer :state
+  attr_accessor :active_player, :bank
+
+  def initialize
+    @state = HandsInitState.new
+    @player = Player.new(INITIAL_BALANCE, PromptActionStrategy.new)
+    @dealer = Player.new(INITIAL_BALANCE, BotActionStrategy.new)
+
+    @active_player = @player
+  end
+
+  def play
+    puts "Hello #{@player.name}. Welcome the the Black Jack game. Your opponent is #{@dealer.name}."
+    start
   end
 
   def greet_player(player)
@@ -172,13 +237,72 @@ class BlackJackGame
     @dealer.hand = Hand.new(@deck.random_card!, @deck.random_card!)
   end
 
-  def print_player_hand
-    puts @player.hand.to_s
+  def withdraw_bets
+    @bank = @player.withdraw(10) + @dealer.withdraw(10)
+    @state = STATE_DEALER_MOVE
   end
 
-  def play
+  def switch_player
+    @active_player = @active_player == @player ? @dealer : @player
+  end
+
+  protected
+
+  def start
+    start_round
+  end
+
+  def start_round
+    loop do
+      begin
+        @state.act(self)
+      rescue RoundFinish
+        puts "Hey dude"
+      end
+    end
+  end
+end
+
+class HandsInitState
+  def act(game)
+    game.init_players_hands
+    puts "Your hand is: "
+    puts game.player.hand.to_s
+    game.state = PlayerMoveState.new
+  end
+end
+
+class WithdrawBetsState
+  DEFAULT_BET = 10
+
+  def act(game)
+    game.bank = game.player.withdraw(DEFAULT_BET) + game.dealer.withdraw(DEFAULT_BET)
+    game.state = PlayerMoveState.new
+  end
+end
+
+class PlayerMoveState
+  def act(game)
+    action = game.active_player.choose_action(skip: "Skip move", add_card: "Add card", open_cards: "Open cards")
+    self.send action.to_sym, game
+  end
+
+  protected
+
+  def skip(game)
+    game.switch_player
+  end
+
+  def add_card(game)
+    card = game.deck.random_card!
+    game.active_player.add_card(card)
+    puts game.active_player.player_hand
+    game.switch_player
+  end
+
+  def open_cards(game)
   end
 end
 
 game = BlackJackGame.new
-game.start
+game.play
