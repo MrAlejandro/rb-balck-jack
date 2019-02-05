@@ -49,7 +49,7 @@ class Card
   end
 
   def to_s
-    print "#{@nominal}#{SUITE_SYMBOLS[@suite].encode("utf-8")}"
+    "#{@nominal}#{SUITE_SYMBOLS[@suite].encode("utf-8")}"
   end
 end
 
@@ -70,6 +70,12 @@ class Hand
   def points_amount
     initial, aces_last = initial_amount_and_hand_with_aces_last
     aces_last.reduce(initial, &method(:add_card_amount_to_points_amount))
+  end
+
+  def to_s
+    hand_string = ""
+    @cards.each { |card| hand_string << "#{card.to_s} " }
+    hand_string << " points amount: #{points_amount.to_s}"
   end
 
   private
@@ -107,3 +113,72 @@ card3 = Card.new(:spades, 10)
 puts card1.to_s, card2.to_s, card3.to_s
 hand = Hand.new(card1, card2, card3)
 print hand.points_amount
+
+class Player
+  attr_accessor :hand
+
+  def initialize(interaction_strategy)
+    @interaction_strategy = interaction_strategy
+  end
+
+  def name
+    unless @name
+      @name = @interaction_strategy.prompt_name
+    end
+    @name
+  end
+
+  def add_card(cards)
+    @hand.add_card(cards)
+  end
+end
+
+class UserInputInteractionStrategy
+  def prompt_name
+    puts "Enter your name: "
+    gets.chomp
+  end
+end
+
+class BotInteractionStrategy
+  def prompt_name
+    "Black Joe"
+  end
+end
+
+class BlackJackGame
+  def start
+    init_players
+    greet_player(@player)
+    init_players_hands
+    print_player_hand
+    play
+  end
+
+  protected
+
+  def init_players
+    @player = Player.new(UserInputInteractionStrategy.new)
+    @dealer = Player.new(BotInteractionStrategy.new)
+  end
+
+  def greet_player(player)
+    puts "Hello #{player.name}"
+  end
+
+  def init_players_hands
+    @deck = Deck.new(Card)
+    @player.hand = Hand.new(@deck.random_card!, @deck.random_card!)
+    @dealer.hand = Hand.new(@deck.random_card!, @deck.random_card!)
+  end
+
+  def print_player_hand
+    puts @player.hand.to_s
+  end
+
+  def play
+  end
+end
+
+game = BlackJackGame.new
+game.start
