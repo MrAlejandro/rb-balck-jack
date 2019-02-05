@@ -72,11 +72,12 @@ class Hand
     aces_last.reduce(initial, &method(:add_card_amount_to_points_amount))
   end
 
-  protected
+  private
 
   def add_card_amount_to_points_amount(amount, card)
     if card.ace?
-      return amount + ACE_MAX_AMOUNT > BLACKJACK_AMOUNT ? amount + ACE_MIN_AMOUNT : amount + ACE_MAX_AMOUNT
+      too_much = amount + ACE_MAX_AMOUNT > BLACKJACK_AMOUNT
+      return too_much ? amount + ACE_MIN_AMOUNT : amount + ACE_MAX_AMOUNT
     end
 
     card.face? ? amount + FACE_CARD_AMOUNT : amount + card.nominal
@@ -84,7 +85,7 @@ class Hand
 
   def initial_amount_and_hand_with_aces_last
     if aces.count == 2
-      return [1, not_aces << aces.first]
+      return [ACE_MIN_AMOUNT, not_aces << aces.first]
     end
 
     [0, not_aces + aces]
@@ -101,7 +102,7 @@ end
 
 card1 = Card.new(:spades, :A)
 card2 = Card.new(:spades, :A)
-card3 = Card.new(:spades, 9)
+card3 = Card.new(:spades, 10)
 
 puts card1.to_s, card2.to_s, card3.to_s
 hand = Hand.new(card1, card2, card3)
