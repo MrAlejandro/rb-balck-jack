@@ -67,6 +67,10 @@ class Hand
     @cards << card
   end
 
+  def cards_number
+    @cards.size
+  end
+
   def points_amount
     initial, aces_last = initial_amount_and_hand_with_aces_last
     aces_last.reduce(initial, &method(:add_card_amount_to_points_amount))
@@ -115,6 +119,7 @@ hand = Hand.new(card1, card2, card3)
 print hand.points_amount
 
 class Player
+  attr_reader :balance
   attr_accessor :hand
 
   def initialize(balance, action_strategy)
@@ -131,12 +136,12 @@ class Player
     @action_strategy.choose_action(actions, self)
   end
 
-  def player_hand
-    "Player's #{name} hand: " << @action_strategy.player_hand(self)
-  end
-
   def add_card(cards)
     @hand.add_card(cards)
+  end
+
+  def points
+    @hand.points_amount
   end
 
   def withdraw(amount)
@@ -157,10 +162,6 @@ class PromptActionStrategy
   def choose_action(actions, player)
     puts "Select action: "
     prompt_select_action(actions)
-  end
-
-  def player_hand(player)
-    player.hand.to_s
   end
 
   protected
@@ -193,33 +194,21 @@ class BotActionStrategy
       :add_card
     end
   end
-
-  def player_hand
-    "* * points amount: *"
-  end
 end
 
 class RoundFinish < RuntimeError; end
 
 class BlackJackGame
-  INITIAL_BALANCE = 100
-  STATE_HANDS_INIT = "hi"
-  STATE_WITHDRAW_BETS = 'wb'
-  STATE_ROUND_START = "rs"
-  STATE_ROUND_FINISH = "rf"
-  STATE_PLAYER_MOVE = "pm"
-  STATE_DEALER_MOVE = "dm"
+  INITIAL_BALANCE = 100.0
 
   attr_reader :player, :dealer, :deck
   attr_writer :state
   attr_accessor :active_player, :bank
 
   def initialize
-    @state = HandsInitState.new
+    @state = PrepareRoundState.new
     @player = Player.new(INITIAL_BALANCE, PromptActionStrategy.new)
     @dealer = Player.new(INITIAL_BALANCE, BotActionStrategy.new)
-
-    @active_player = @player
   end
 
   def play
@@ -237,13 +226,12 @@ class BlackJackGame
     @dealer.hand = Hand.new(@deck.random_card!, @deck.random_card!)
   end
 
-  def withdraw_bets
-    @bank = @player.withdraw(10) + @dealer.withdraw(10)
-    @state = STATE_DEALER_MOVE
-  end
-
   def switch_player
     @active_player = @active_player == @player ? @dealer : @player
+  end
+
+  def dealers_move?
+    @active_player == @dealer
   end
 
   protected
@@ -256,28 +244,37 @@ class BlackJackGame
     loop do
       begin
         @state.act(self)
-      rescue RoundFinish
-        puts "Hey dude"
+      rescue RoundFinish => e
+        puts e.message
+        break
       end
     end
   end
 end
 
-class HandsInitState
+class PrepareRoundState
+  DEFAULT_BET = 10.0
+
   def act(game)
-    game.init_players_hands
-    puts "Your hand is: "
-    puts game.player.hand.to_s
+    @game = game
+    init_hands
+    withdraw_bets
+    @game.active_player = @game.player
     game.state = PlayerMoveState.new
   end
-end
 
-class WithdrawBetsState
-  DEFAULT_BET = 10
+  protected
 
-  def act(game)
-    game.bank = game.player.withdraw(DEFAULT_BET) + game.dealer.withdraw(DEFAULT_BET)
-    game.state = PlayerMoveState.new
+  def init_hands
+    @game.init_players_hands
+    puts "Your hand is: "
+    puts @game.player.hand.to_s
+  end
+
+  def withdraw_bets
+    @game.bank = DEFAULT_BET * 2
+    @game.player.withdraw(DEFAULT_BET)
+    @game.dealer.withdraw(DEFAULT_BET)
   end
 end
 
@@ -290,17 +287,96 @@ class PlayerMoveState
   protected
 
   def skip(game)
+    puts game.dealers_move? ? "Your opponent skipped his move." : "You skipped the move."
     game.switch_player
+    game.state = CheckRoundState.new
   end
 
   def add_card(game)
     card = game.deck.random_card!
     game.active_player.add_card(card)
-    puts game.active_player.player_hand
+    puts game.dealers_move? ? "Your opponent has taken another card." : "Your hand is: #{game.active_player.hand.to_s}."
     game.switch_player
+    game.state = CheckRoundState.new
   end
 
   def open_cards(game)
+    game.state = CalculateResultsState.new
+  end
+end
+
+class CheckRoundState
+  def act(game)
+    if open_cards?(game)
+      game.state = CalculateResultsState.new
+    else
+      game.state = PlayerMoveState.new
+    end
+  end
+
+  protected
+
+  def open_cards?(game)
+    game.player.hand.cards_number == 3 && game.dealer.hand.cards_number == 3
+  end
+end
+
+class CalculateResultsState
+  BLACKJACK_AMOUNT = 21
+
+  def act(game)
+    @game = game
+    summarize
+    game.bank = 0
+    puts "#{@game.player.name}'s balance is: #{@game.player.balance}"
+    puts "#{@game.dealer.name}'s balance is: #{@game.dealer.balance}"
+    raise RoundFinish, "The round is over"
+  end
+
+  protected
+
+  def summarize
+    if draw?
+      handle_draw
+    else
+      player_won? ? reward_winner(@game.player, @game.dealer) : reward_winner(@game.dealer, @game.player)
+    end
+  end
+
+  def draw?
+    player_points == dealer_points || player_points > BLACKJACK_AMOUNT && dealer_points > BLACKJACK_AMOUNT
+  end
+
+  def handle_draw
+    puts "It's draw (each player has #{@game.player.points} points). The bank will be split between players."
+    payout = @game.bank / 2.0
+    @game.player.deposit(payout)
+    @game.dealer.deposit(payout)
+  end
+
+  def player_won?
+    player_points > dealer_points && player_points <= BLACKJACK_AMOUNT
+  end
+
+  def reward_winner(winner, loser)
+    puts "#{winner.name} with #{winner.points} points grabs the bank! Congratulations!"
+    winner.deposit(@game.bank)
+    puts "#{loser.name} (#{loser.points} points) may be next time."
+  end
+
+  def player_points
+    @player_points ||= @game.player.points
+  end
+
+  def dealer_points
+    @dealer_points ||= @game.dealer.points
+  end
+end
+
+class StartNewRoundState
+  def act
+    puts "AAAAAAAAAAA"
+    exit
   end
 end
 
