@@ -7,10 +7,6 @@ class Player
     @action_strategy = action_strategy
   end
 
-  def continue?
-    true
-  end
-
   def add_card(cards)
     @hand.add_card(cards)
   end
@@ -39,7 +35,11 @@ class Player
     @name ||= @action_strategy.name
   end
 
-  def choose_action(actions)
-    @action_strategy.choose_action(actions, self)
+  def method_missing(m, *args)
+    if @action_strategy.respond_to?(m)
+      @action_strategy.send(m, *args, self)
+    else
+      raise "Trying to call undefined method #{m}"
+    end
   end
 end

@@ -3,7 +3,7 @@ class PlayerMoveState
     @game = game
     actions = { skip: "Skip move", add_card: "Add card", open_cards: "Open cards" }
     actions.delete(:add_card) if active_players_hand_full?
-    action = game.active_player.choose_action(actions)
+    action = game.active_player.choose_move_action(actions)
     send action.to_sym
   end
 

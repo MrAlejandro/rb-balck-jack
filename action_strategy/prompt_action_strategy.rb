@@ -1,11 +1,15 @@
 class PromptActionStrategy
   def name
-    return "Alex" # TODO: remove this
     puts "Enter your name: "
     gets.chomp
   end
 
-  def choose_action(actions, player)
+  def choose_move_action(actions, player)
+    puts "Select action: "
+    prompt_select_action(actions)
+  end
+
+  def choose_continue_action?(actions, player)
     puts "Select action: "
     prompt_select_action(actions)
   end
