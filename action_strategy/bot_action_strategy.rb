@@ -13,7 +13,7 @@ class BotActionStrategy
     end
   end
 
-  def choose_continue_action?(_actions, _player)
+  def choose_continue_action(_actions, _player)
     :yes
   end
 end

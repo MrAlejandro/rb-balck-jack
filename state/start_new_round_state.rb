@@ -1,8 +1,8 @@
 class StartNewRoundState
   def act(game)
     @game = game
-    raise GameFinished, 'You do not have ehoutg money to continue' if player_out_of_money?
-    raise GameFinished, 'Your opponent does not have ehoutg money to continue' if dealer_out_of_money?
+    raise GameFinished, 'You do not have enough money to continue' if player_out_of_money?
+    raise GameFinished, 'Your opponent does not have enough money to continue' if dealer_out_of_money?
     raise GameFinished, 'Good bue!' unless continue_game?
 
     game.state = PrepareRoundState.new
@@ -20,8 +20,8 @@ class StartNewRoundState
 
   def continue_game?
     actions = { yes: 'Continue game.', no: 'Exit game.' }
-    player_action = @game.player.choose_continue_action?(actions)
-    dealer_action = @game.dealer.choose_continue_action?(actions)
+    player_action = @game.player.choose_continue_action(actions)
+    dealer_action = @game.dealer.choose_continue_action(actions)
     dealer_action == :yes && player_action == :yes
   end
 end

@@ -9,7 +9,7 @@ class PromptActionStrategy
     prompt_select_action(actions)
   end
 
-  def choose_continue_action?(actions, _player)
+  def choose_continue_action(actions, _player)
     puts 'Select action: '
     prompt_select_action(actions)
   end

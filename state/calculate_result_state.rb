@@ -30,7 +30,8 @@ class CalculateResultsState
   end
 
   def player_won?
-    player_points > dealer_points && player_points <= @game.class::BLACKJACK_AMOUNT
+    bj_amount = @game.class::BLACKJACK_AMOUNT
+    dealer_points > bj_amount || (player_points > dealer_points && player_points <= bj_amount)
   end
 
   def reward_winner(winner, loser)
