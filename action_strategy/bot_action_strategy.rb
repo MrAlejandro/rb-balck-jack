@@ -1,12 +1,12 @@
 class BotActionStrategy
-  SAFE_POINTS_AMOUNT = 17
+  SAFE_points = 17
 
   def name
     'Jack Black'
   end
 
   def choose_move_action(actions, player)
-    if player.hand.points_amount >= SAFE_POINTS_AMOUNT || actions[:add_card].nil?
+    if player.hand.points >= SAFE_points || actions[:add_card].nil?
       :skip
     else
       :add_card

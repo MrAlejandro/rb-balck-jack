@@ -21,7 +21,7 @@ class PlayerMoveState
   end
 
   def add_card
-    card = @game.deck.random_card!
+    card = @game.deck.card!
     @game.active_player.add_card(card)
     puts @game.dealers_move? ? 'Your opponent has taken another card.' : "Your hand is: #{@game.active_player.hand}."
     puts ''

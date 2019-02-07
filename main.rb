@@ -14,5 +14,6 @@ require_relative 'state/start_new_round_state'
 
 require_relative 'black_jack_game'
 
-game = BlackJackGame.new
-game.play
+black_jack_game = BlackJackGame.new
+black_jack_game.play
+

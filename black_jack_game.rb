@@ -10,8 +10,10 @@ class BlackJackGame
 
   def initialize
     @state = PrepareRoundState.new
-    @player = Player.new(INITIAL_BALANCE, PromptActionStrategy.new)
-    @dealer = Player.new(INITIAL_BALANCE, BotActionStrategy.new)
+    puts "Enter your name: "
+    name = gets.chomp
+    @player = Player.new(name, INITIAL_BALANCE)
+    @dealer = Player.new("Jack Black", INITIAL_BALANCE)
   end
 
   def play
@@ -21,9 +23,9 @@ class BlackJackGame
   end
 
   def init_players_hands
-    @deck = Deck.new(Card)
-    @player.hand = Hand.new(@deck.random_card!, @deck.random_card!)
-    @dealer.hand = Hand.new(@deck.random_card!, @deck.random_card!)
+    @deck = Deck.new
+    @player.hand = Hand.new(@deck.card!, @deck.card!)
+    @dealer.hand = Hand.new(@deck.card!, @deck.card!)
   end
 
   def switch_player
@@ -37,14 +39,31 @@ class BlackJackGame
   protected
 
   def start_game
-    loop do
-      begin
-        @state.act(self)
-      rescue GameFinished => e
-        puts e.message
-        break
-      end
-    end
+  end
+end
+
+class Round
+  def initialize(player, dealer)
+    @player = player
+    @dealer = dealer
+  end
+
+  def start
+    init_cards
+    player_turn
+    dealer_turn
+    calculate_result
+  end
+
+  protected
+
+  def init_cards
+    @deck = Deck.new
+    @player.hand = Hand.new(@deck.card!, @deck.card!)
+    puts ""
+    puts "Your hand is: "
+    puts @player.hand_summary
+    @dealer.hand = Hand.new(@deck.card!, @deck.card!)
   end
 end
 
