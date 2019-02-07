@@ -36,10 +36,8 @@ class Player
   end
 
   def method_missing(m, *args)
-    if @action_strategy.respond_to?(m)
-      @action_strategy.send(m, *args, self)
-    else
-      raise "Trying to call undefined method #{m}"
-    end
+    raise "Trying to call undefined method #{m}" unless @action_strategy.respond_to?(m)
+
+    @action_strategy.send(m, *args, self)
   end
 end
