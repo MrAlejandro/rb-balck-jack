@@ -51,6 +51,6 @@ class CalculateResultsState
   def print_summary
     puts "#{@game.player.name} - hand: #{@game.player.hand_summary}; balance: #{@game.player.balance}."
     puts "#{@game.dealer.name} - hand: #{@game.dealer.hand_summary}; balance: #{@game.dealer.balance}."
-    puts ""
+    puts ''
   end
 end

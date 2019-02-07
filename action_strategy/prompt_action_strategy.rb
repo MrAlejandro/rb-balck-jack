@@ -1,16 +1,16 @@
 class PromptActionStrategy
   def name
-    puts "Enter your name: "
+    puts 'Enter your name: '
     gets.chomp
   end
 
-  def choose_move_action(actions, player)
-    puts "Select action: "
+  def choose_move_action(actions, _player)
+    puts 'Select action: '
     prompt_select_action(actions)
   end
 
-  def choose_continue_action?(actions, player)
-    puts "Select action: "
+  def choose_continue_action?(actions, _player)
+    puts 'Select action: '
     prompt_select_action(actions)
   end
 

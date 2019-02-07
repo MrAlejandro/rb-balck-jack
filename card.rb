@@ -13,10 +13,10 @@ class Card
   end
 
   def face?
-    [:J, :Q, :K].include?(@nominal)
+    %i[J Q K].include?(@nominal)
   end
 
   def to_s
-    "#{@nominal}#{SUITE_SYMBOLS[@suite].encode("utf-8")}"
+    "#{@nominal}#{SUITE_SYMBOLS[@suite].encode('utf-8')}"
   end
 end

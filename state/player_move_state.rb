@@ -1,7 +1,7 @@
 class PlayerMoveState
   def act(game)
     @game = game
-    actions = { skip: "Skip move", add_card: "Add card", open_cards: "Open cards" }
+    actions = { skip: 'Skip move', add_card: 'Add card', open_cards: 'Open cards' }
     actions.delete(:add_card) if active_players_hand_full?
     action = game.active_player.choose_move_action(actions)
     send action.to_sym
@@ -14,8 +14,8 @@ class PlayerMoveState
   end
 
   def skip
-    puts @game.dealers_move? ? "Your opponent skipped his move." : "You skipped your move."
-    puts ""
+    puts @game.dealers_move? ? 'Your opponent skipped his move.' : 'You skipped your move.'
+    puts ''
     @game.switch_player
     @game.state = CheckRoundState.new
   end
@@ -23,8 +23,8 @@ class PlayerMoveState
   def add_card
     card = @game.deck.random_card!
     @game.active_player.add_card(card)
-    puts @game.dealers_move? ? "Your opponent has taken another card." : "Your hand is: #{@game.active_player.hand.to_s}."
-    puts ""
+    puts @game.dealers_move? ? 'Your opponent has taken another card.' : "Your hand is: #{@game.active_player.hand}."
+    puts ''
     @game.switch_player
     @game.state = CheckRoundState.new
   end

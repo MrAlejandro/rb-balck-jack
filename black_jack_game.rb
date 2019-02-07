@@ -15,7 +15,7 @@ class BlackJackGame
   end
 
   def play
-    puts ""
+    puts ''
     puts "Hello #{@player.name}. Welcome the the Black Jack game. Your opponent is #{@dealer.name}."
     start_game
   end

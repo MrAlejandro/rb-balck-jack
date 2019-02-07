@@ -11,9 +11,9 @@ class PrepareRoundState
 
   def init_hands
     @game.init_players_hands
-    puts "Your hand is: "
+    puts 'Your hand is: '
     puts @game.player.hand_summary
-    puts ""
+    puts ''
   end
 
   def withdraw_bets
