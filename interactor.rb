@@ -1,6 +1,6 @@
 class Interactor
-  def ask_uer_name
-    puts 'Enter your name: '
+  def ask(message)
+    puts message
     gets.chomp
   end
 
@@ -19,8 +19,9 @@ class Interactor
     codes = actions.keys
     messages = actions.values
     messages.each_with_index { |message, index| puts "#{index}: #{message}" }
-    action_index = gets.to_i
-    prompt_select_action(actions) unless codes[action_index]
-    codes[action_index]
+    action = codes[gets.to_i]
+    return prompt_select_action(actions) unless action
+
+    action
   end
 end

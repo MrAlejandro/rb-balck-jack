@@ -8,7 +8,7 @@ class BlackJackGame
 
   def initialize(interactor)
     @interactor = interactor
-    name = @interactor.ask_uer_name
+    name = @interactor.ask('Enter your name: ')
     name = 'Incognito' if name.empty?
     @player = Player.new(name, INITIAL_BALANCE)
     @dealer = Player.new('Jack Black', INITIAL_BALANCE)

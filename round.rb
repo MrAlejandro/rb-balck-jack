@@ -12,7 +12,7 @@ class Round
     make_bets
     until finished?
       player_turn
-      dealer_turn unless finished?
+      dealer_turn
     end
     calculate_result
     print_summary
@@ -71,20 +71,22 @@ class Round
   end
 
   def dealer_turn
-    if skip_dealer_turn?
-      @game.interactor.notify("#{@dealer.name} has skipped his turn.")
-    else
-      add_dealer_card
-    end
+    return if finished?
+
+    dealer_need_card? ? add_dealer_card : skip_dealer_turn
   end
 
-  def skip_dealer_turn?
-    @dealer.points >= SAFE_POINTS || player_hand_full?(@dealer)
+  def dealer_need_card?
+    @dealer.points < SAFE_POINTS && !player_hand_full?(@dealer)
   end
 
   def add_dealer_card
     @dealer.add_card(@deck.card!)
     @game.interactor.notify("#{@dealer.name} has taken another card.")
+  end
+
+  def skip_dealer_turn
+    @game.interactor.notify("#{@dealer.name} has skipped his turn.")
   end
 
   def calculate_result

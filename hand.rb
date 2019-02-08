@@ -25,8 +25,9 @@ class Hand
   private
 
   def add_card_points_to_points_sum(amount, card)
-    too_much = amount + card.points > BlackJackGame::BLACKJACK_AMOUNT
-    too_much ? amount + card.ace_points : amount + card.points
+    new_amount = amount + card.points
+    too_much = new_amount > BlackJackGame::BLACKJACK_AMOUNT
+    too_much ? amount + card.ace_points : new_amount
   end
 
   def initial_points_and_hand_with_aces_last
