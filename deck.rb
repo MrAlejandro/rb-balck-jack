@@ -1,31 +1,22 @@
 class Deck
-  attr_reader :deck
-
-  def initialize(card_class)
-    @card_class = card_class
-    @deck = {
-      spades: [2, 3, 4, 5, 6, 7, 8, 9, 10, :J, :Q, :K, :A],
-      diamonds: [2, 3, 4, 5, 6, 7, 8, 9, 10, :J, :Q, :K, :A],
-      hearts: [2, 3, 4, 5, 6, 7, 8, 9, 10, :J, :Q, :K, :A],
-      clubs: [2, 3, 4, 5, 6, 7, 8, 9, 10, :J, :Q, :K, :A]
-    }
+  def initialize
+    @cards = build_deck
+    shuffle_deck!
   end
 
-  def random_card
-    nominal = nil
-    nominal = @deck[suite].sample until nominal
-    @card_class.new(suite, nominal)
+  def shuffle_deck!
+    @cards.shuffle!
   end
 
-  def random_card!
-    card = random_card
-    @deck[card.suite].delete(card.nominal)
-    card
+  def card!
+    @cards.pop
   end
 
   protected
 
-  def suite
-    %i[spades diamonds hearts clubs].sample
+  def build_deck
+    Card::SUITES.flat_map do |suite|
+      Card::NOMINALS.map { |nominal| Card.new(suite, nominal) }
+    end
   end
 end

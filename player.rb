@@ -1,10 +1,10 @@
 class Player
-  attr_reader :balance
+  attr_reader :balance, :name
   attr_accessor :hand
 
-  def initialize(balance, action_strategy)
+  def initialize(name, balance)
+    @name = name
     @balance = balance
-    @action_strategy = action_strategy
   end
 
   def add_card(cards)
@@ -16,7 +16,7 @@ class Player
   end
 
   def points
-    @hand.points_amount
+    @hand.points
   end
 
   def withdraw(amount)
@@ -29,15 +29,5 @@ class Player
 
   def hand_summary
     @hand.to_s
-  end
-
-  def name
-    @name ||= @action_strategy.name
-  end
-
-  def method_missing(m, *args)
-    raise "Trying to call undefined method #{m}" unless @action_strategy.respond_to?(m)
-
-    @action_strategy.send(m, *args, self)
   end
 end
