@@ -17,9 +17,7 @@ class Hand
   end
 
   def to_s
-    hand_string = ''
-    @cards.each { |card| hand_string << "#{card} " }
-    hand_string << " points amount: #{points}"
+    @cards.map(&:to_s).join(' ')
   end
 
   private

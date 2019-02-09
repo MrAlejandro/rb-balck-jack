@@ -1,5 +1,5 @@
 class BlackJackGame
-  INITIAL_BALANCE = 100.0
+  INITIAL_BALANCE = 10.0
   MAX_CARDS_IN_HAND = 3
   BLACKJACK_AMOUNT = 21
   BET = 10.0
@@ -8,14 +8,14 @@ class BlackJackGame
 
   def initialize(interactor)
     @interactor = interactor
-    name = @interactor.ask('Enter your name: ')
+    name = @interactor.ask_players_name
     name = 'Incognito' if name.empty?
     @player = Player.new(name, INITIAL_BALANCE)
     @dealer = Player.new('Jack Black', INITIAL_BALANCE)
   end
 
   def play
-    @interactor.notify("Hello #{@player.name}. Welcome the the Black Jack game. Your opponent is #{@dealer.name}.")
+    @interactor.greet_player(@player.name, @dealer.name)
     start_game
   end
 
@@ -23,7 +23,7 @@ class BlackJackGame
 
   def start_game
     start_round
-    @interactor.notify('The game is over. Good bye!')
+    @interactor.show_game_over_notification
   end
 
   def start_round
@@ -35,7 +35,7 @@ class BlackJackGame
   def continue?
     return false unless players_have_money?
 
-    action = @interactor.select_action({ yes: 'Yes', no: 'No' }, 'Would you like to continue?')
+    action = @interactor.ask_player_to_continue(%i[yes no])
     action == :yes
   end
 

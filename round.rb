@@ -39,7 +39,7 @@ class Round
   end
 
   def print_player_hand
-    @game.interactor.notify('', 'Your hand is: ', @player.hand_summary)
+    @game.interactor.show_hand_info(@player.hand_summary, @player.points)
   end
 
   def player_turn
@@ -48,7 +48,7 @@ class Round
   end
 
   def player_actions
-    actions = { skip_turn: 'Skip turn', add_card: 'Add card', open_cards: 'Open cards' }
+    actions = %i[skip_turn add_card open_cards]
     actions.delete(:add_card) if player_hand_full?(@player)
     actions
   end
@@ -58,7 +58,7 @@ class Round
   end
 
   def skip_turn
-    @game.interactor.notify('You skipped your turn')
+    @game.interactor.show_skip_turn_notification(@player.name)
   end
 
   def add_card
@@ -82,11 +82,11 @@ class Round
 
   def add_dealer_card
     @dealer.add_card(@deck.card!)
-    @game.interactor.notify("#{@dealer.name} has taken another card.")
+    @game.interactor.show_player_took_card_notification(@dealer.name)
   end
 
   def skip_dealer_turn
-    @game.interactor.notify("#{@dealer.name} has skipped his turn.")
+    @game.interactor.show_skip_turn_notification(@dealer.name)
   end
 
   def calculate_result
@@ -103,8 +103,7 @@ class Round
   end
 
   def handle_draw
-    message = "It's draw (each player has #{player_points} points). The bank will be split between players."
-    @game.interactor.notify(message)
+    @game.interactor.show_draw_notification(player_points)
     payout = @bank / 2.0
     @player.deposit(payout)
     @dealer.deposit(payout)
@@ -117,8 +116,8 @@ class Round
 
   def reward_winner(winner, loser)
     winner.deposit(@bank)
-    @game.interactor.notify("#{winner.name} with #{winner.points} points grabs the bank! Congratulations!")
-    @game.interactor.notify("#{loser.name} (#{loser.points} points) may be next time.")
+    @game.interactor.congratulate_winner(winner.name, winner.points)
+    @game.interactor.cheer_up_looser(loser.name, loser.points)
   end
 
   def player_points
@@ -130,10 +129,7 @@ class Round
   end
 
   def print_summary
-    @game.interactor.notify(
-      "#{@player.name} - hand: #{@player.hand_summary}; balance: #{@player.balance}.",
-      "#{@dealer.name} - hand: #{@dealer.hand_summary}; balance: #{@dealer.balance}.",
-      ''
-    )
+    @game.interactor.show_player_round_summary(@player.name, @player.hand_summary, player_points, @player.balance)
+    @game.interactor.show_player_round_summary(@dealer.name, @dealer.hand_summary, dealer_points, @dealer.balance)
   end
 end
